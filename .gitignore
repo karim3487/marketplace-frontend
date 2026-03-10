@@ -1,0 +1,43 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules/
+
+# Local env files
+.env.local
+.env.*.local
+*.local
+
+# Build outputs
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# IDE/Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Testing
+/cypress/videos/
+/cypress/screenshots/
+__screenshots__/
+coverage/
+
+# Vite
+*.timestamp-*-*.mjs
+
+# OS files
+.DS_Store
