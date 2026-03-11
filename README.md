@@ -1,54 +1,65 @@
-# marketplace-frontend
+# Marketplace Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Пользовательский интерфейс прототипа маркетплейса, построенный на **Vue 3**, **Vite** и **Tailwind CSS**.
 
-## Recommended IDE Setup
+## 🛠 Технологический стек
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- **Vue 3** (Composition API)
+- **TypeScript**
+- **Vite**: сборщик проекта.
+- **TanStack Query (Vue Query)**: управление состоянием запросов.
+- **Pinia**: глобальное хранилище данных.
+- **Tailwind CSS 4**: современный CSS фреймворк.
+- **Vue Router**: навигация.
+- **openapi-typescript-codegen**: генерация API-клиента из OpenAPI (Swagger).
 
-## Recommended Browser Setup
+---
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## 🚀 Установка и запуск
 
-## Type Support for `.vue` Imports in TS
+Для локальной разработки выполните следующие шаги:
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+### 1. Подготовка окружения
+Рекомендуется использовать **Bun** или **npm**. Убедитесь, что бэкенд запущен по адресу `http://localhost:8000`.
 
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
+```bash
+# Установка зависимостей
 npm install
+
+# (Опционально) Генерация API клиента, если эндпоинты бэкенда изменились
+npm run gen:api
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
+### 2. Запуск сервера разработки
+```bash
 npm run dev
 ```
+Фронтенд будет доступен по адресу: [http://localhost:5173](http://localhost:5173)
 
-### Type-Check, Compile and Minify for Production
+---
 
-```sh
-npm run build
-```
+## 📂 Структура проекта
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+Проект следует принципам **Feature-Sliced Design (FSD)**:
+- `src/app`: инициализация приложения (роутер, провайдеры).
+- `src/pages`: страницы приложения (Каталог, Детали товара, Админка).
+- `src/widgets`: крупные блоки интерфейса (Header, Layout, Списки товаров).
+- `src/features`: интерактивный функционал (Авторизация, Загрузка изображений, Сортировка).
+- `src/entities`: бизнес-сущности (Продукт, Продавец, Оффер) и их компоненты (Card, Row).
+- `src/shared`: переиспользуемый код (API клиент, утилиты, общие стили).
 
-```sh
-npm run test:unit
-```
+---
 
-### Lint with [ESLint](https://eslint.org/)
+## 🛠 Команды разработки
 
-```sh
-npm run lint
-```
+- `npm run dev` — запуск Vite в режиме разработки.
+- `npm run build` — сборка проекта для продакшена.
+- `npm run lint` — проверка линтером (ESLint + Oxlint).
+- `npm run format` — автоматическое форматирование кода (Prettier).
+- `npm run type-check` — проверка типов TypeScript.
+- `npm run test:unit` — запуск модульных тестов (Vitest).
+
+---
+
+## 🐳 Docker
+Фронтенд поставляется с Dockerfile, который собирает проект и запускает его под управлением **Nginx**. Это позволяет использовать фронтенд в общем `docker-compose.yaml` в репозитории `marketplace-stack`.
