@@ -235,3 +235,13 @@ Created implementation plan -> Set up API client singleton -> Implemented Entity
   - **Infinite Scroll Refactor**: Transitioned from a custom `loading` state in `ProductList` to the native `hasNextPage` and `isFetchingNextPage` states provided by TanStack Query, reducing component complexity by ~30%.
   - **Premium Loading States**: Replaced simple loaders with synchronized skeleton screens that use the `aspect-4/3` ratio to mirror real content, preventing layout shifts (CLS).
   - **Error Serialization**: Implemented a standardized error extraction computed property that safely handles FastAPI's `detail` field even within query error objects.
+
+## Phase 14: Git Configuration Maintenance
+
+**AI Tools Used**: `bash-pro`, `git-advanced-workflows`.
+**Iteration Process**: Identified tracked .eslintcache -> Removed from repository -> Updated .gitignore.
+**Checks Performed**:
+- Verified `.eslintcache` is no longer tracked by `git ls-files`.
+- Verified `.gitignore` contains `.eslintcache`.
+**Engineering Decisions & Reasoning**:
+- .eslintcache is a local, machine-specific file and should never be in the repository as it leads to unnecessary merge conflicts and repository bloat. Added it to .gitignore to maintain a clean repository state.

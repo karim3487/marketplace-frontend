@@ -39,7 +39,7 @@ export const useCreateOfferMutation = () => {
 export const useDeleteOfferMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ productId, offerId }: { productId: string; offerId: string }) =>
+    mutationFn: ({ productId: _productId, offerId }: { productId: string; offerId: string }) =>
       api.adminOffers.deleteOfferApiV1AdminOffersOfferIdDelete(offerId),
     onSuccess: (_, { productId }) => {
       toast.success('Предложение удалено')
