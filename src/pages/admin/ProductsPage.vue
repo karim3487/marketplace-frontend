@@ -58,7 +58,7 @@ function goToCreate() {
       <!-- Pagination -->
       <div v-if="nextCursor" class="flex justify-center pb-10">
         <button 
-          @click="() => fetchProducts(true)"
+          @click="() => fetchProducts()"
           :disabled="loading"
           class="inline-flex items-center gap-2 px-8 py-3 bg-white border border-slate-200 text-text-main rounded-xl font-bold text-sm hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-50 cursor-pointer shadow-sm"
         >

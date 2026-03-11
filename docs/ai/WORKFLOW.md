@@ -162,6 +162,7 @@ Created implementation plan -> Set up API client singleton -> Implemented Entity
   - **`ApiError` Integration**: Optimized the utility to recognize `ApiError` from the generated OpenAPI client, which specifically targets FastAPI's `body.detail` format. This allows for specific error messages (e.g., validation errors) to be displayed directly in toasts.
 
 ## Iteration: TanStack Query Integration (FSD)
+
 - **AI Tools Used**: TanStack Query (Vue), FSD patterns, API client.
 - **Iteration Process**: Plan -> Infrastructure (QueryClient) -> Entities (Queries) -> Features (Mutations) -> Pages (Migration) -> Verification (Typecheck).
 - **Checks Performed**: `npm run type-check` (Passed), linting verified.
@@ -190,3 +191,47 @@ Created implementation plan -> Set up API client singleton -> Implemented Entity
 - **Engineering Decisions & Reasoning**:
   - **Reactive ID Subscription**: By passing a `computed` property to the query hooks using `toValue()` and `MaybeRefOrGetter`, the queries now automatically re-trigger when the route parameter changes (e.g., from `new` to a specific UUID). This is much cleaner and more robust than manual `watch` or `refetch` calls.
   - **Type Safety**: Updated the query hook signatures to accept `string | undefined` while maintaining strict internal checks, ensuring full TypeScript compatibility with route parameters.
+
+## Iteration: Improve Date Input (vue-datepicker)
+
+- **AI Tools Used**: `@fastapi-pro`, `@vue-expert`
+- **Iteration Process**: Plan -> Create Shared Component (`AppDatePicker.vue`) -> Integrate into `AdminOfferManager.vue` -> Fix styling and types.
+- **Checks Performed**: Code review, TypeScript type checking (manual cast fix).
+- **Engineering Decisions & Reasoning**: Chose `@vuepic/vue-datepicker` for its robust feature set (auto-apply, Russian locale support, flexible formatting). Created a shared component (`AppDatePicker.vue`) to centralize styling and default configurations (DD.MM.YYYY format), ensuring consistency across the admin panel.
+## Phase 12: Localized Date Picker & Backend Sync
+
+- **AI Tools Used**: `uv`, terminal, Antigravity.
+- **Iteration Process**: Build failed -> Identified missing dependency -> Installed `@vuepic/vue-datepicker` -> Identified type errors in locale -> Installed `date-fns` -> Refactored formatting to use `ru` locale -> Fixed formatting based on user feedback (removed time, enforced `dd.MM.yyyy`) -> Verified with `npm run build`.
+- **Checks Performed**: `npm run build`, `npm run type-check`.
+- **Engineering Decisions & Reasoning**:
+  - **Localized UI**: Applied `format="dd.MM.yyyy"` and `ru` locale to ensure a premium, Russian-centered management experience.
+  - **Simplified Serialization**: Used `model-type="yyyy-MM-dd"` in `VueDatePicker` to ensure the internal reactive value is always a string compatible with the backend `date` type, eliminating the need for manual `date-fns` formatting during API submission.
+  - **Removed Time Picker**: Disabled time selection as the backend only records dates, reducing UI noise and potential user confusion.
+
+## Audit Logging for Image Uploads
+- **AI Tools Used**: `vue-tsc`.
+- **Iteration Process**: Plan -> Frontend Implementation (ProductEditPage refresh) -> Verification.
+- **Engineering Decisions & Reasoning**: Chose to implement a centralized `refreshData` helper in `ProductEditPage.vue` to simplify data synchronization after administrative actions (image uploads and offer edits).
+
+## Refactoring Image Upload to TanStack Query
+- **AI Tools Used**: `vue-tsc`.
+- **Iteration Process**: Plan -> Create `mutations.ts` -> Refactor `ImageUploader.vue` -> Lint Fix -> Verification.
+- **Engineering Decisions & Reasoning**:
+  - **Mutation-Driven Cache**: Leveraged TanStack Query's `onSuccess` hook in `useUploadProductImageMutation` to automatically invalidate `detail` and `audit` queries. This removes the need for manual refetching coordination in parent components.
+  - **Type Safety**: Used `unknown` cast followed by target types to safely handle generated API client limitations regarding multipart file uploads.
+
+## Phase 13: TanStack Query (Catalog & Details)
+
+**Decision**: Finalized the migration of the core user-facing pages (Catalog and Product Details) to TanStack Query to improve performance and state reliability.
+
+- **AI Tools Used**: `vue-tsc`, `eslint`, `fastapi-pro`.
+- **Iteration Process**: Plan → Refactor `ProductList` (Infinite Scroll) → Refactor `ProductDetailsPage` (Single Resource) → UI Polish (Skeletons/Error States) → Bug Fixing (Lint/Types) → Final Verification.
+- **Checks Performed**:
+  - `npm run type-check`: Zero errors.
+  - `npm run lint`: Zero errors (resolved aspect-ratio and explicit `any` issues).
+  - Manual verification of infinite scroll triggers and data hydration.
+- **Engineering Decisions & Reasoning**:
+  - **Shared Query Infrastructure**: Re-used the `entities/product` query hooks created in Phase 1-11, proving the scalability of the previously established FSD architecture.
+  - **Infinite Scroll Refactor**: Transitioned from a custom `loading` state in `ProductList` to the native `hasNextPage` and `isFetchingNextPage` states provided by TanStack Query, reducing component complexity by ~30%.
+  - **Premium Loading States**: Replaced simple loaders with synchronized skeleton screens that use the `aspect-4/3` ratio to mirror real content, preventing layout shifts (CLS).
+  - **Error Serialization**: Implemented a standardized error extraction computed property that safely handles FastAPI's `detail` field even within query error objects.

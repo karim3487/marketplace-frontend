@@ -1,19 +1,31 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { useInfiniteScroll } from "@vueuse/core";
-import { ref } from "vue";
-import { api } from "@/shared/api/api-client";
-import type { ProductListItem } from "@/shared/api/generated";
+import { usePublicInfiniteProductsQuery } from "@/entities/product";
 import { formatPrice, getCurrencySymbol } from '@/shared/lib/currency';
 
 const emit = defineEmits<{
   (e: "select-product", id: string): void;
 }>();
 
-const items = ref<ProductListItem[]>([]);
-const loading = ref(false);
-const finished = ref(false);
-const offset = ref(0);
 const limit = 12;
+
+const {
+  data,
+  isLoading: loading,
+  isFetchingNextPage,
+  hasNextPage,
+  fetchNextPage,
+  error: queryError,
+} = usePublicInfiniteProductsQuery(limit);
+
+const items = computed(() => data.value?.pages.flatMap(page => page.items) ?? []);
+const finished = computed(() => !hasNextPage.value && !loading.value);
+const error = computed(() => {
+  if (!queryError.value) return null;
+  const err = queryError.value as { body?: { detail?: string }; message?: string };
+  return err.body?.detail || err.message || "Ошибка при загрузке товаров";
+});
 
 const formatDeliveryDate = (dateStr: string | null | undefined): string | null => {
   if (!dateStr) return null;
@@ -35,33 +47,13 @@ const stockLabel = (stock: number): { text: string; type: string } => {
   return { text: `В наличии`, type: "success" };
 };
 
-const fetchProducts = async () => {
-  if (loading.value || finished.value) return;
-
-  loading.value = true;
-  try {
-    const response = await api.public.getProductsApiV1PublicProductsGet(limit, offset.value);
-    items.value.push(...response.items);
-    offset.value += limit;
-    if (response.items.length < limit) {
-      finished.value = true;
-    }
-  } catch (error) {
-    console.error("Failed to fetch products:", error);
-    finished.value = true;
-  } finally {
-    loading.value = false;
-  }
-};
-
-// Initial load
-fetchProducts();
-
 // Infinite scroll
 useInfiniteScroll(
   window,
   () => {
-    fetchProducts();
+    if (hasNextPage.value && !isFetchingNextPage.value) {
+      fetchNextPage();
+    }
   },
   { distance: 300 }
 );
@@ -79,7 +71,7 @@ useInfiniteScroll(
         @click="emit('select-product', product.id)"
       >
         <!-- Image -->
-        <div class="relative aspect-[4/3] overflow-hidden bg-slate-50">
+        <div class="relative aspect-4/3 overflow-hidden bg-slate-50">
           <img
             v-if="product.thumbnail_url"
             :src="product.thumbnail_url"
@@ -136,9 +128,9 @@ useInfiniteScroll(
       </div>
 
       <!-- Skeleton Loading -->
-      <template v-if="loading">
-        <div v-for="i in 12" :key="'skeleton-' + i" class="card overflow-hidden animate-pulse">
-          <div class="aspect-[4/3] bg-slate-100"></div>
+      <template v-if="loading || isFetchingNextPage">
+        <div v-for="i in (loading ? 12 : 4)" :key="'skeleton-' + i" class="card overflow-hidden animate-pulse">
+          <div class="aspect-4/3 bg-slate-100"></div>
           <div class="p-4">
             <div class="h-4 bg-slate-100 rounded w-3/4 mb-3"></div>
             <div class="h-5 bg-slate-100 rounded w-1/3 mb-2"></div>
@@ -146,6 +138,17 @@ useInfiniteScroll(
           </div>
         </div>
       </template>
+    </div>
+
+    <!-- Error State -->
+    <div v-if="error" class="mt-8 p-4 bg-red-50 rounded-xl border border-red-100 text-center">
+      <p class="text-red-600 text-sm font-medium mb-3">{{ error }}</p>
+      <button 
+        @click="fetchNextPage()" 
+        class="px-4 py-2 bg-white border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+      >
+        Попробовать еще раз
+      </button>
     </div>
 
     <!-- End of list -->

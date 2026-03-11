@@ -1,35 +1,26 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { api } from '@/shared/api/api-client'
-import { useAuthStore } from '../model/useAuthStore'
+import { useAuthStore, useAdminLoginMutation } from '../index'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
 const username = ref('')
 const password = ref('')
-const loading = ref(false)
-const error = ref<string | null>(null)
 
-async function handleLogin() {
-  loading.value = true
-  error.value = null
-  
-  try {
-    const response = await api.adminAuth.loginForAccessTokenApiV1AdminAuthLoginPost({
-      username: username.value,
-      password: password.value
-    })
-    
-    authStore.setToken(response.access_token)
-    router.push('/admin/products')
-  } catch (e: unknown) {
-    error.value = 'Неверные учетные данные'
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
+const { mutate: login, isPending: loading, error: mutationError } = useAdminLoginMutation()
+
+function handleLogin() {
+  login({
+    username: username.value,
+    password: password.value
+  }, {
+    onSuccess: (response) => {
+      authStore.setToken(response.access_token)
+      router.push('/admin/products')
+    }
+  })
 }
 </script>
 
@@ -68,8 +59,8 @@ async function handleLogin() {
         </div>
       </div>
 
-      <div v-if="error" class="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-semibold border border-red-100 text-center animate-shake">
-        {{ error }}
+      <div v-if="mutationError" class="p-3 rounded-lg bg-red-50 text-red-600 text-sm font-semibold border border-red-100 text-center animate-shake">
+        Неверные учетные данные
       </div>
 
       <button 

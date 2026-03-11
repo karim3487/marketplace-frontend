@@ -1,7 +1,7 @@
 /* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+ 
 import type { PaginatedResponse_ProductListItem_ } from '../models/PaginatedResponse_ProductListItem_';
 import type { ProductDetailResponse } from '../models/ProductDetailResponse';
 import type { CancelablePromise } from '../core/CancelablePromise';

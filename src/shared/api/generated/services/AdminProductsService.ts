@@ -1,7 +1,7 @@
 /* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+ 
 import type { Body_upload_product_image_api_v1_admin_products__product_id__image_post } from '../models/Body_upload_product_image_api_v1_admin_products__product_id__image_post';
 import type { ImageUploadResponse } from '../models/ImageUploadResponse';
 import type { PaginatedResponse_ProductResponse_ } from '../models/PaginatedResponse_ProductResponse_';

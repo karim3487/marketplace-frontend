@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { api } from '@/shared/api/api-client'
+import { ref, computed } from 'vue'
+import { useUploadProductImageMutation } from '@/entities/product/api/mutations'
 
 const props = defineProps<{
   productId: string
@@ -11,36 +11,30 @@ const emit = defineEmits<{
 }>()
 
 const fileInput = ref<HTMLInputElement | null>(null)
-const uploading = ref(false)
-const error = ref<string | null>(null)
+
+const { mutate, isPending: uploading, error: mutationError } = useUploadProductImageMutation()
+
+const error = computed(() => {
+  if (!mutationError.value) return null
+  return (mutationError.value as Error).message || 'Ошибка загрузки'
+})
 
 async function handleUpload() {
   const file = fileInput.value?.files?.[0]
   if (!file) return
 
-  uploading.value = true
-  error.value = null
-
-  try {
-    // The generated client expects a string for the file type in TypeScript,
-    // but the underlying FormData builder `getFormData` in `request.ts`
-    // checks: `isString(value) || isBlob(value)` to append it correctly.
-    // By casting it to any first, we bypass the TS error and let the
-    // native File object be passed to FormData correctly.
-    const filePayload = file as any as string
-
-    await api.adminProducts.uploadProductImageApiV1AdminProductsProductIdImagePost(
-      props.productId,
-      { file: filePayload },
-    )
-    emit('success')
-  } catch (e: unknown) {
-    error.value = (e as Error).message || 'Ошибка загрузки'
-    console.error(e)
-  } finally {
-    uploading.value = false
-    if (fileInput.value) fileInput.value.value = ''
-  }
+  mutate(
+    { productId: props.productId, file },
+    {
+      onSuccess: () => {
+        emit('success')
+        if (fileInput.value) fileInput.value.value = ''
+      },
+      onError: (err: unknown) => {
+        console.error(err)
+      },
+    },
+  )
 }
 
 function triggerSelect() {

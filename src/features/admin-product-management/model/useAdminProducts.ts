@@ -1,55 +1,42 @@
-import { ref } from 'vue'
-import { api } from '@/shared/api/api-client'
-import type { ProductResponse } from '@/shared/api/generated'
+import { computed } from 'vue'
+import { useAdminProductsQuery } from '../api/queries'
+import { useDeleteProductMutation } from '../api/mutations'
 
 export function useAdminProducts() {
-  const products = ref<ProductResponse[]>([])
-  const loading = ref(false)
-  const nextCursor = ref<string | null>(null)
-  const error = ref<string | null>(null)
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage,
+    error,
+    refetch,
+  } = useAdminProductsQuery()
 
-  async function fetchProducts(isNext = false) {
-    if (loading.value) return
+  const { mutateAsync: deleteMutate, isPending: isDeleting } = useDeleteProductMutation()
 
-    loading.value = true
-    error.value = null
-    try {
-      const response = await api.adminProducts.listProductsApiV1AdminProductsGet(
-        50,
-        isNext ? parseInt(nextCursor.value || '0') : 0,
-      )
+  const products = computed(() => data.value?.pages.flatMap((page) => page.items) ?? [])
 
-      if (isNext) {
-        products.value = [...products.value, ...response.items]
-      } else {
-        products.value = response.items
-      }
-
-      nextCursor.value = response.next_cursor || null
-    } catch (e: unknown) {
-      error.value = (e as Error).message || 'Ошибка загрузки товаров'
-    } finally {
-      loading.value = false
+  const loadMore = async () => {
+    if (hasNextPage.value && !isFetchingNextPage.value) {
+      await fetchNextPage()
     }
   }
 
-  async function deleteProduct(id: string) {
+  const deleteProduct = async (id: string) => {
     if (!confirm('Вы уверены, что хотите удалить этот товар?')) return
-
-    try {
-      await api.adminProducts.deleteProductApiV1AdminProductsProductIdDelete(id)
-      products.value = products.value.filter((p) => p.id !== id)
-    } catch (e: unknown) {
-      alert((e as Error).message || 'Ошибка удаления')
-    }
+    await deleteMutate(id)
   }
 
   return {
     products,
-    loading,
-    nextCursor,
+    loading: isLoading,
+    loadingMore: isFetchingNextPage,
     error,
-    fetchProducts,
+    nextCursor: computed(() => (hasNextPage.value ? 'exists' : null)),
+    fetchProducts: refetch,
+    loadMore,
     deleteProduct,
+    isDeleting,
   }
 }

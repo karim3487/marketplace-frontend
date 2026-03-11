@@ -23,7 +23,11 @@ const {
   refetch: fetchProduct,
 } = useProductQuery(productId)
 
-const { data: auditLogsData, isLoading: logsLoading } = useProductAuditLogsQuery(productId)
+const {
+  data: auditLogsData,
+  isLoading: logsLoading,
+  refetch: fetchAuditLogs,
+} = useProductAuditLogsQuery(productId)
 const auditLogs = computed(() => auditLogsData.value || [])
 
 const loading = computed(() => (isEdit.value ? productLoading.value || logsLoading.value : false))
@@ -36,14 +40,18 @@ const actionLoading = computed(
   () => createMutation.isPending.value || updateMutation.isPending.value,
 )
 
+function refreshData() {
+  fetchProduct()
+  fetchAuditLogs()
+}
+
 async function handleSubmit(data: ProductCreate | ProductUpdate) {
   if (isEdit.value && productId.value) {
     updateMutation.mutate(
       { id: productId.value, data: data as ProductUpdate },
       {
         onSuccess: () => {
-          // Manual refetch is handled by mutation's onSuccess invalidation,
-          // but we can also perform custom logic here if needed.
+          refreshData()
         },
       },
     )
@@ -74,7 +82,7 @@ function handleCancel() {
             stroke-linecap="round"
             stroke-linejoin="round"
             stroke-width="2"
-            d="M15 19l-7-7m0 0l7-7m-7 7h18"
+            d="M19 12H5M5 12l7 7M5 12l7-7"
           />
         </svg>
       </button>
@@ -132,7 +140,7 @@ function handleCancel() {
           v-if="isEdit && product"
           :product-id="product.id"
           :offers="product.offers || []"
-          @changed="() => fetchProduct()"
+          @changed="() => refreshData()"
         />
 
         <!-- Audit Logs Module -->
@@ -185,7 +193,7 @@ function handleCancel() {
               </div>
             </div>
 
-            <ImageUploader :product-id="product.id" @success="() => fetchProduct()" />
+            <ImageUploader :product-id="product.id" />
 
             <p
               class="text-[11px] text-text-muted leading-relaxed font-medium bg-slate-50 p-4 rounded-lg border border-slate-100"

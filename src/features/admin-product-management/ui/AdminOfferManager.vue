@@ -1,107 +1,55 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useQueryClient } from '@tanstack/vue-query'
-import { api } from '@/shared/api/api-client'
-import { productKeys } from '@/entities/product/api/keys'
-import { CurrencyCode, type OfferResponse, type SellerResponse } from '@/shared/api/generated'
+import { ref } from 'vue'
+import { CurrencyCode, type OfferResponse } from '@/shared/api/generated'
 import { getCurrencySymbol } from '@/shared/lib/currency'
+import { VueDatePicker } from '@vuepic/vue-datepicker'
+import '@vuepic/vue-datepicker/dist/main.css'
+import { ru } from 'date-fns/locale'
+import { useSellersQuery } from '../api/queries'
+import { useCreateOfferMutation, useDeleteOfferMutation } from '../api/mutations'
 
 const props = defineProps<{
   productId: string
   offers: OfferResponse[]
 }>()
 
-const emit = defineEmits<{
-  (e: 'changed'): void
-}>()
-
-const queryClient = useQueryClient()
-const loading = ref(false)
-const actionLoading = ref(false)
-const sellers = ref<SellerResponse[]>([])
+const { data: sellers = [] } = useSellersQuery()
+const createOffer = useCreateOfferMutation()
+const deleteOffer = useDeleteOfferMutation()
 
 const showCreateModal = ref(false)
 const newOffer = ref({
   seller_id: '',
   priceAmount: 0,
   priceCurrency: CurrencyCode.KGS as CurrencyCode,
-  delivery_date: '',
+  delivery_date: null as string | null,
 })
-
-const displayDateStr = ref('')
-
-function handleDateInput(e: Event) {
-  const target = e.target as HTMLInputElement
-  let val = target.value.replace(/\D/g, '')
-  if (val.length > 2) val = val.slice(0, 2) + '.' + val.slice(2)
-  if (val.length > 5) val = val.slice(0, 5) + '.' + val.slice(5, 9)
-
-  displayDateStr.value = val
-
-  if (val.length === 10) {
-    const [dd, mm, yyyy] = val.split('.')
-    newOffer.value.delivery_date = `${yyyy}-${mm}-${dd}`
-  } else {
-    newOffer.value.delivery_date = ''
-  }
-}
-
-async function fetchSellers() {
-  loading.value = true
-  try {
-    const res = await api.adminSellers.listSellersApiV1AdminSellersGet()
-    sellers.value = res
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(fetchSellers)
 
 async function handleDelete(offerId: string) {
   if (!confirm('Вы уверены, что хотите удалить это предложение?')) return
-  actionLoading.value = true
-  try {
-    await api.adminOffers.deleteOfferApiV1AdminOffersOfferIdDelete(offerId)
-    await queryClient.invalidateQueries({ queryKey: productKeys.audit(props.productId) })
-    emit('changed')
-  } catch (e: unknown) {
-    alert((e as Error).message || 'Ошибка удаления')
-  } finally {
-    actionLoading.value = false
-  }
+  await deleteOffer.mutateAsync({ productId: props.productId, offerId })
 }
 
 async function handleCreate() {
-  if (!newOffer.value.seller_id) return alert('Выберите продавца')
+  if (!newOffer.value.seller_id) return
+  if (!newOffer.value.delivery_date) return
 
-  actionLoading.value = true
-  try {
-    await api.adminOffers.createOfferApiV1AdminOffersPost({
-      product_id: props.productId,
-      seller_id: newOffer.value.seller_id as string,
-      price: {
-        amount: Number(newOffer.value.priceAmount),
-        currency: newOffer.value.priceCurrency,
-      },
-      delivery_date: newOffer.value.delivery_date as string,
-    })
-    showCreateModal.value = false
-    newOffer.value = {
-      seller_id: '',
-      priceAmount: 0,
-      priceCurrency: CurrencyCode.KGS,
-      delivery_date: '',
-    }
-    displayDateStr.value = ''
-    await queryClient.invalidateQueries({ queryKey: productKeys.audit(props.productId) })
-    emit('changed')
-  } catch (e: unknown) {
-    alert((e as Error).message || 'Ошибка сохранения')
-  } finally {
-    actionLoading.value = false
+  await createOffer.mutateAsync({
+    product_id: props.productId,
+    seller_id: newOffer.value.seller_id,
+    price: {
+      amount: Number(newOffer.value.priceAmount),
+      currency: newOffer.value.priceCurrency,
+    },
+    delivery_date: newOffer.value.delivery_date,
+  })
+
+  showCreateModal.value = false
+  newOffer.value = {
+    seller_id: '',
+    priceAmount: 0,
+    priceCurrency: CurrencyCode.KGS,
+    delivery_date: null,
   }
 }
 </script>
@@ -280,19 +228,30 @@ async function handleCreate() {
               </div>
 
               <!-- Delivery Date -->
+
               <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-text-muted ml-0.5"
-                  >Дата доставки
-                  <span class="text-[10px] text-slate-400 font-normal">(ДД.ММ.ГГГГ)</span></label
+                <label class="text-xs font-semibold text-text-muted ml-0.5">Дата доставки</label>
+
+                <VueDatePicker
+                  v-model="newOffer.delivery_date"
+                  format="dd.MM.yyyy"
+                  model-type="yyyy-MM-dd"
+                  :locale="ru"
+                  :enable-time-picker="false"
+                  :teleport="true"
+                  auto-apply
+                  cancel-text="Отмена"
+                  select-text="Выбрать"
                 >
-                <input
-                  v-model="displayDateStr"
-                  @input="handleDateInput"
-                  type="text"
-                  placeholder="31.12.2025"
-                  required
-                  class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-medium transition-all text-text-main"
-                />
+                  <template #dp-input="{ value }">
+                    <input
+                      :value="value"
+                      class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm font-medium transition-all text-text-main cursor-pointer"
+                      placeholder="Выберите дату"
+                      readonly
+                    />
+                  </template>
+                </VueDatePicker>
               </div>
             </div>
 
@@ -306,10 +265,10 @@ async function handleCreate() {
               </button>
               <button
                 type="submit"
-                :disabled="actionLoading"
+                :disabled="createOffer.isPending.value"
                 class="flex-1 py-2.5 bg-primary text-white rounded-lg text-sm font-bold shadow-md hover:bg-primary-hover disabled:opacity-50 transition-all cursor-pointer relative overflow-hidden group"
               >
-                <span v-if="!actionLoading">Добавить</span>
+                <span v-if="!createOffer.isPending.value">Добавить</span>
                 <div v-else class="flex items-center justify-center">
                   <div
                     class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"

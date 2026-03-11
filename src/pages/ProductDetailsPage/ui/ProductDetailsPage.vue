@@ -1,40 +1,29 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { api } from "@/shared/api/api-client";
-import type { ProductDetailResponse } from "@/entities/product";
+import { usePublicProductQuery } from "@/entities/product";
 import ProductDetailInfo from "@/widgets/ProductDetailInfo/ui/ProductDetailInfo.vue";
 
 const route = useRoute();
 const router = useRouter();
 const productId = route.params.id as string;
+const offersSort = ref<"price" | "delivery_date">("price");
 
-const product = ref<ProductDetailResponse | null>(null);
-const loading = ref(true);
-const error = ref<string | null>(null);
+const {
+  data: product,
+  isLoading: loading,
+  error: queryError,
+  refetch,
+} = usePublicProductQuery(productId, offersSort);
 
-const fetchDetails = async (sort: "price" | "delivery_date" = "price") => {
-  loading.value = true;
-  try {
-    const response = await api.public.getProductDetailsApiV1PublicProductsProductIdGet(
-      productId,
-      sort
-    );
-    product.value = response;
-  } catch (e: unknown) {
-    error.value = e instanceof Error ? e.message : "Ошибка при загрузке товара";
-    console.error(e);
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(() => {
-  fetchDetails();
+const error = computed(() => {
+  if (!queryError.value) return null;
+  const err = queryError.value as { body?: { detail?: string }; message?: string };
+  return err.body?.detail || err.message || "Ошибка при загрузке товара";
 });
 
 const handleSortChange = (newSort: "price" | "delivery_date") => {
-  fetchDetails(newSort);
+  offersSort.value = newSort;
 };
 </script>
 
@@ -78,7 +67,7 @@ const handleSortChange = (newSort: "price" | "delivery_date") => {
       <h2 class="text-lg font-semibold text-text-main mb-2">{{ error }}</h2>
       <p class="text-sm text-text-muted mb-6">Не удалось загрузить данные о товаре.</p>
       <button
-        @click="fetchDetails()"
+        @click="refetch()"
         class="px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary-hover transition-colors cursor-pointer"
       >
         Повторить

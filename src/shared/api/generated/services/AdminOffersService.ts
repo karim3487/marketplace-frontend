@@ -1,7 +1,7 @@
 /* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+ 
 import type { AdminOfferResponse } from '../models/AdminOfferResponse';
 import type { OfferCreate } from '../models/OfferCreate';
 import type { OfferUpdate } from '../models/OfferUpdate';

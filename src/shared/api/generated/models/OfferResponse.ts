@@ -1,13 +1,12 @@
 /* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
-import type { Money } from './Money';
-import type { SellerResponse } from './SellerResponse';
+ 
+import type { Money } from './Money'
+import type { SellerResponse } from './SellerResponse'
 export type OfferResponse = {
-    id: string;
-    seller: SellerResponse;
-    price: Money;
-    delivery_date: string;
-};
-
+  id: string
+  seller: SellerResponse
+  price: Money
+  delivery_date: string
+}
