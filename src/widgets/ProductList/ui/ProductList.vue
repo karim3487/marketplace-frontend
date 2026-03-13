@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useInfiniteScroll } from "@vueuse/core";
 import { usePublicInfiniteProductsQuery } from "@/entities/product";
 import { formatPrice, getCurrencySymbol } from '@/shared/lib/currency';
+import TechIdBadge from "@/shared/ui/TechIdBadge.vue";
 
 const emit = defineEmits<{
   (e: "select-product", id: string): void;
@@ -100,29 +101,36 @@ useInfiniteScroll(
         </div>
 
         <!-- Content -->
-        <div class="p-4">
-          <h3 class="text-sm font-semibold text-text-main leading-snug mb-2 group-hover:text-primary transition-colors line-clamp-2">
-            {{ product.name }}
-          </h3>
+        <div class="p-4 flex flex-col h-[calc(100%-60%)]"> <!-- Adjust height to push ID down if needed, but grow on middle is better -->
+          <div class="grow">
+            <h3 class="text-sm font-semibold text-text-main leading-snug mb-2 group-hover:text-primary transition-colors line-clamp-2">
+              {{ product.name }}
+            </h3>
 
-          <!-- Price -->
-          <div class="flex items-end justify-between gap-2">
-            <div>
-              <span class="text-lg font-bold text-text-main">
-                {{ formatPrice(product.price.amount) }}
-              </span>
-                <span class="text-xs font-semibold text-text-muted group-hover:text-primary-hover transition-colors ml-1">
-                  {{ getCurrencySymbol(product.price.currency) }}
+            <!-- Price -->
+            <div class="flex items-end justify-between gap-2">
+              <div>
+                <span class="text-lg font-bold text-text-main">
+                  {{ formatPrice(product.price.amount) }}
                 </span>
+                  <span class="text-xs font-semibold text-text-muted group-hover:text-primary-hover transition-colors ml-1">
+                    {{ getCurrencySymbol(product.price.currency) }}
+                  </span>
+              </div>
+            </div>
+
+            <!-- Delivery date -->
+            <div v-if="formatDeliveryDate(product.nearest_delivery_date)" class="mt-2 flex items-center gap-1.5 text-xs text-text-muted">
+              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span>Доставка: <strong class="text-text-main font-medium">{{ formatDeliveryDate(product.nearest_delivery_date) }}</strong></span>
             </div>
           </div>
 
-          <!-- Delivery date -->
-          <div v-if="formatDeliveryDate(product.nearest_delivery_date)" class="mt-2 flex items-center gap-1.5 text-xs text-text-muted">
-            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>Доставка: <strong class="text-text-main font-medium">{{ formatDeliveryDate(product.nearest_delivery_date) }}</strong></span>
+          <!-- Technical ID at the bottom -->
+          <div class="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between gap-2">
+            <TechIdBadge :id="product.id" />
           </div>
         </div>
       </div>

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useProductQuery, useProductAuditLogsQuery } from '@/entities/product/api/queries'
+import { useProductQuery, useProductAuditLogsQuery, AuditLogDetails } from '@/entities/product'
 import {
   useCreateProduct,
   useUpdateProduct,
-} from '@/features/admin-product-management/api/mutations'
-import { AdminProductForm, AdminOfferManager } from '@/features/admin-product-management'
+  AdminProductForm,
+  AdminOfferManager
+} from '@/features/admin-product-management'
 import { ImageUploader } from '@/features/admin-image-upload'
-import AuditLogDetails from '@/entities/product/ui/AuditLogDetails.vue'
 import type { ProductCreate, ProductUpdate } from '@/shared/api/generated'
 
 const route = useRoute()

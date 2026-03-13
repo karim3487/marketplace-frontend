@@ -14,7 +14,7 @@ const emit = defineEmits<{
 
 const name = ref(props.initialData?.name || '')
 const priceAmount = ref(props.initialData?.price.amount || 0)
-const priceCurrency = ref(props.initialData?.price.currency || CurrencyCode.KGS)
+const priceCurrency = ref(props.initialData?.price.currency || CurrencyCode.RUB)
 const stock = ref(props.initialData?.stock || 0)
 const attributes = ref<ProductAttributeCreate[]>(
   props.initialData?.attributes?.map(a => ({ key: a.key, value: a.value })) || []

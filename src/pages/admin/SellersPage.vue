@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { SellerResponse } from '@/shared/api/generated'
-import { useSellersQuery } from '@/entities/seller/api/queries'
+import { useSellersQuery } from '@/entities/seller'
 import {
   useCreateSeller,
   useUpdateSeller,
   useDeleteSeller,
-} from '@/features/admin-seller-management/api/mutations'
+} from '@/features/admin-seller-management'
 
 const { data: sellersData, isLoading: loading, error: queryError, refetch } = useSellersQuery()
 const sellers = computed(() => sellersData.value || [])

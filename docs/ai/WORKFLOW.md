@@ -245,3 +245,37 @@ Created implementation plan -> Set up API client singleton -> Implemented Entity
 - Verified `.gitignore` contains `.eslintcache`.
 **Engineering Decisions & Reasoning**:
 - .eslintcache is a local, machine-specific file and should never be in the repository as it leads to unnecessary merge conflicts and repository bloat. Added it to .gitignore to maintain a clean repository state.
+
+## Phase 15: Admin Offer Manager Type Stability
+
+**Decision**: Fixed a TypeScript regression in `AdminOfferManager.vue` where optional currency fields from the API were causing type mismatches in the administration form.
+
+- **AI Tools Used**: `typescript-pro`, `debugger`.
+- **Iteration Process**: Identified `CurrencyCode | undefined` assignment error in `openEditModal` → Applied nullish coalescing fallback (`?? CurrencyCode.RUB`) → Explicitly typed tests in `AdminProductForm.spec.ts` to satisfy strict null checks → Verified with full project type check.
+- **Checks Performed**:
+  - `npm run type-check` — 0 errors (AdminOfferManager + Spec suite).
+- **Engineering Decisions & Reasoning**:
+  - **API Gracefulness**: While the API schema defines `currency` as optional in `Money.ts`, the administration form requires a stable enumeration value for its selection input. Providing a default (`RUB`) during the "Edit" hydration phase ensures the UI remains consistent even if a record exists with missing currency data (e.g., legacy data or minimal imports).
+  - **Spec Stability**: Fixed common `Object is possibly undefined` errors in the test suite by utilizing safe navigation and type assertions, ensuring that the CI/CD pipeline remains green and reliable as the codebase shifts toward stricter TypeScript enforcement.
+
+## Phase 16: Product ID Display Update
+
+**Decision**: Updated the `ProductList` widget to display the full UUID of products instead of truncated strings.
+
+- **AI Tools Used**: `fastapi-pro`, `debugger`.
+- **Iteration Process**: Identified truncated ID logic in `ProductList.vue` → Removed `.split('-')[0]` and ellipsis → Verified visual impact.
+- **Checks Performed**:
+  - UI Verification: IDs now display fully.
+- **Engineering Decisions & Reasoning**:
+  - **Information Density**: Displaying the full UUID provides more clarity for administrative and debugging purposes directly in the catalog view, especially in a development/test environment. The `font-mono` and `text-[10px]` styling ensure the long string remains readable and fits within the card layout with minimal disruption to the overall aesthetic.
+
+## Phase 17: Router Structure Audit & Cleanup
+
+**Decision**: Verified and confirmed the removal of redundant Vue-router scaffolds and legacy entry points to maintain strict FSD compliance.
+
+- **Iteration Process**: Audited root-level `src/main.ts` and `src/router/` → Confirmed their removal → Verified `index.html` hydration via `src/app/main.ts` → Validated router provider location.
+- **Checks Performed**:
+  - Global file search for `createRouter` and `main.ts` entry points.
+  - Import graph audit in `App.vue` and `main.ts`.
+- **Engineering Decisions & Reasoning**:
+  - **FSD Compliance**: Ensuring that the router configuration exclusively resides in `src/app/providers/router.ts` and the main entry point in `src/app/main.ts`. This eliminates architectural "noise" and prevents developer confusion between the standard Vue scaffold and the project's custom FSD implementation.

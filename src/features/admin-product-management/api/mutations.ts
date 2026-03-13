@@ -64,6 +64,19 @@ export const useUpdateProduct = () => {
   })
 }
 
+export const useUpdateOfferMutation = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ offerId, data }: { offerId: string; data: OfferCreate }) =>
+      api.adminOffers.updateOfferApiV1AdminOffersOfferIdPut(offerId, data),
+    onSuccess: (res) => {
+      toast.success('Предложение обновлено')
+      queryClient.invalidateQueries({ queryKey: adminProductsKeys.detail(res.product_id) })
+    },
+    onError: (e) => handleError(e, 'Не удалось обновить предложение'),
+  })
+}
+
 export const useDeleteProductMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({

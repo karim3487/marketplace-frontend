@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAdminProducts } from '@/features/admin-product-management'
-import AdminProductTable from '@/widgets/AdminProductTable.vue'
+import { AdminProductTable } from '@/widgets/AdminProductTable'
 
 const router = useRouter()
 const { products, loading, nextCursor, error, fetchProducts, deleteProduct } = useAdminProducts()

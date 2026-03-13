@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { usePublicProductQuery } from "@/entities/product";
-import ProductDetailInfo from "@/widgets/ProductDetailInfo/ui/ProductDetailInfo.vue";
+import { ProductDetailInfo } from "@/widgets/ProductDetailInfo";
 
 const route = useRoute();
 const router = useRouter();
