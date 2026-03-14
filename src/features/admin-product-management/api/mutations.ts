@@ -7,9 +7,11 @@ import type {
   ProductCreate, 
   ProductUpdate, 
   OfferCreate,
+  OfferUpdate,
   Body_upload_product_image_api_v1_admin_products__product_id__image_post 
 } from '@/shared/api/generated'
 import { adminProductsKeys } from './queries'
+
 export const useCreateProduct = () => {
   const queryClient = useQueryClient()
   return useMutation({
@@ -31,6 +33,7 @@ export const useCreateOfferMutation = () => {
     onSuccess: (_, data) => {
       toast.success('Предложение добавлено')
       queryClient.invalidateQueries({ queryKey: adminProductsKeys.detail(data.product_id) })
+      queryClient.invalidateQueries({ queryKey: productKeys.audit(data.product_id) })
     },
     onError: (e) => handleError(e, 'Не удалось добавить предложение'),
   })
@@ -44,6 +47,7 @@ export const useDeleteOfferMutation = () => {
     onSuccess: (_, { productId }) => {
       toast.success('Предложение удалено')
       queryClient.invalidateQueries({ queryKey: adminProductsKeys.detail(productId) })
+      queryClient.invalidateQueries({ queryKey: productKeys.audit(productId) })
     },
     onError: (e) => handleError(e, 'Не удалось удалить предложение'),
   })
@@ -67,11 +71,12 @@ export const useUpdateProduct = () => {
 export const useUpdateOfferMutation = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ offerId, data }: { offerId: string; data: OfferCreate }) =>
+    mutationFn: ({ offerId, data }: { offerId: string; data: OfferUpdate }) =>
       api.adminOffers.updateOfferApiV1AdminOffersOfferIdPut(offerId, data),
     onSuccess: (res) => {
       toast.success('Предложение обновлено')
       queryClient.invalidateQueries({ queryKey: adminProductsKeys.detail(res.product_id) })
+      queryClient.invalidateQueries({ queryKey: productKeys.audit(res.product_id) })
     },
     onError: (e) => handleError(e, 'Не удалось обновить предложение'),
   })
